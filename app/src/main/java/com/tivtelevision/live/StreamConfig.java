@@ -91,7 +91,9 @@ final class StreamConfig {
                 return o.optString("stream").startsWith("http") ? o : null;
             }
             // Web page: turn line breaks and paragraphs into new lines, drop tags, decode common entities.
-            String text = t.replaceAll("(?i)<br\\s*/?>|</p>|</div>|</li>|</h\\d>", "\n")
+            // Ignore the page head, scripts and styles (SEO plugins copy page text into them, sometimes cut short).
+            String text = t.replaceAll("(?is)<head[\\s>].*?</head>|<script[^>]*>.*?</script>|<style[^>]*>.*?</style>", " ")
+                    .replaceAll("(?i)<br\\s*/?>|</p>|</div>|</li>|</h\\d>", "\n")
                     .replaceAll("<[^>]+>", " ")
                     .replace("&amp;", "&").replace("&#038;", "&").replace("&nbsp;", " ")
                     .replace("&#8211;", "-").replace("&#8217;", "'").replace("&rsquo;", "'")
