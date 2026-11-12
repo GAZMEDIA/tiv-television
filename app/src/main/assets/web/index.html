@@ -206,6 +206,15 @@ footer .in{max-width:1180px;margin:0 auto;padding:18px 16px 26px;color:var(--ash
     <p>Authentic Tiv stories and perspectives, told by the people who live them, streaming free to Tiv homes in Benue and across the world.</p>
   </section>
 
+  <section class="sec" id="getapp" hidden>
+    <h3>Get the TIV Television app</h3>
+    <p class="lead">Watch TIV live on your Android phone or Android TV, free.</p>
+    <div class="earn">
+      <a class="main" href="tiv-television.apk" download><b>Download for Android</b><span>Phones, tablets and Android TV. Open the file and allow installs from your browser when asked.</span></a>
+      <a href="tv.html"><b>Watch on a smart TV browser</b><span>Open this page on your TV: tv.html</span></a>
+    </div>
+  </section>
+
   <section class="sec" id="support">
     <h3>Support &amp; advertise</h3>
     <p class="lead">Keep TIV Television on air, and reach Tiv homes everywhere.</p>
@@ -367,6 +376,7 @@ window.tivBack=()=>false;
     box.hidden=false};
   show(); if(list.length>1) setInterval(show,8000);
 })();
+if(!window.TIVApp){const g=document.getElementById('getapp');if(g)g.hidden=false}
 </script>
 </body>
 </html>
