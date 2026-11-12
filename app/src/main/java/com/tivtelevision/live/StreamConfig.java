@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  *
  * The page can be a normal web page containing lines like:
  *
- *   TIV_STREAM = https://example.trycloudflare.com/hls/live.m3u8
+ *   TIV_STREAM = https://example.trycloudflare.com/hls/live.m3u8   (or "off" for the off-air screen)
  *   TIV_SHARE = https://facebook.com/tivtelevisionkase
  *   TIV_PROGRAMME = 06:00 | Morning Devotion | Prayer and worship | Faith
  *   TIV_PROGRAMME = 07:00 | Tiv News at Seven | The morning news | News
@@ -38,7 +38,7 @@ final class StreamConfig {
     private static final String PREFS = "tiv_config";
     private static final String KEY_JSON = "config_json";
 
-    private static final Pattern STREAM = Pattern.compile("TIV_STREAM\\s*[=:]\\s*(https?://[^\\s\"'<>]+)");
+    private static final Pattern STREAM = Pattern.compile("TIV_STREAM\\s*[=:]\\s*(https?://[^\\s\"'<>]+|off\\b)", Pattern.CASE_INSENSITIVE);
     private static final Pattern SHARE = Pattern.compile("TIV_SHARE\\s*[=:]\\s*(https?://[^\\s\"'<>]+)");
     private static final Pattern PROGRAMME = Pattern.compile("TIV_PROGRAMME\\s*[=:]\\s*([^\\n]+)");
     private static final Pattern SPONSOR = Pattern.compile("TIV_SPONSOR\\s*[=:]\\s*([^\\n]+)");
@@ -96,7 +96,8 @@ final class StreamConfig {
         try {
             if (t.startsWith("{")) {
                 JSONObject o = new JSONObject(t);
-                return o.optString("stream").startsWith("http") ? o : null;
+                String st = o.optString("stream");
+                return (st.startsWith("http") || st.equalsIgnoreCase("off")) ? o : null;
             }
             // Web page: turn line breaks and paragraphs into new lines, drop tags, decode common entities.
             // Ignore the page head, scripts and styles (SEO plugins copy page text into them, sometimes cut short).
@@ -109,7 +110,8 @@ final class StreamConfig {
             Matcher m = STREAM.matcher(text);
             if (!m.find()) return null;
             JSONObject o = new JSONObject();
-            o.put("stream", m.group(1));
+            String st = m.group(1);
+            o.put("stream", st.equalsIgnoreCase("off") ? "off" : st);
             Matcher s = SHARE.matcher(text);
             if (s.find()) o.put("share", s.group(1));
             JSONArray schedule = new JSONArray();

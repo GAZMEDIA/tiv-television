@@ -8,7 +8,7 @@ plugins {
 // Page the app reads the current stream link (and optional schedule) from.
 def CONFIG_URL = "https://gazgoc.com.ng/tiv-app-link/"
 // Used only when the link page can't be reached and no link was saved before.
-def FALLBACK_STREAM = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+def FALLBACK_STREAM = "off"   // "off" shows the TIV off-air screen
 // Google AdMob IDs. These are Google's official TEST ids (they show "Test Ad").
 // Replace both with TIV's real ids from admob.google.com before publishing.
 def ADMOB_APP_ID = "ca-app-pub-3940256099942544~3347511713"

@@ -162,7 +162,9 @@ const video=$('video'); let hls=null, levels=[], qIndex=-1, mode='start', menuId
 function msg(t){const m=$('msg');m.textContent=t;m.classList.add('show');clearTimeout(msg.t);msg.t=setTimeout(()=>m.classList.remove('show'),2500)}
 
 /* ---------- Player ---------- */
+const OFF_AIR='TIV Television is off air right now. Please check back soon.';
 function load(){
+  if(STREAM_URL==='off'){ready=false;return}
   if(window.Hls&&Hls.isSupported()){
     hls=new Hls({liveSyncDurationCount:3,maxBufferLength:20});
     hls.loadSource(STREAM_URL); hls.attachMedia(video);
@@ -180,7 +182,7 @@ function tryPlay(){
 }
 function begin(){
   $('start').classList.remove('show'); mode='watch';
-  $('standby').textContent='Tuning in to TIV Television…';
+  $('standby').textContent=STREAM_URL==='off'?OFF_AIR:'Tuning in to TIV Television…';
   if(ready) tryPlay();
   showInfo();
   setTimeout(()=>{ if(video.paused||!video.videoWidth) $('standby').textContent='The channel is not on air right now. It will start playing as soon as it is back.'; },12000);
@@ -269,7 +271,9 @@ document.addEventListener('click',e=>{
 load();
 
 /* Called by the app: stream link changed / remote Back button */
-window.tivSwitchStream=u=>{STREAM_URL=u;if(hls){hls.loadSource(u);hls.startLoad()}else{video.src=u;if(mode!=='start')tryPlay()}};
+window.tivSwitchStream=u=>{STREAM_URL=u;
+  if(u==='off'){if(hls){hls.destroy();hls=null}video.removeAttribute('src');video.load();video.classList.remove('on');ready=false;if(mode!=='start')$('standby').textContent=OFF_AIR;return}
+  if(hls){hls.loadSource(u);hls.startLoad()}else if(window.Hls&&Hls.isSupported()){load();if(mode!=='start')$('standby').textContent='Tuning in to TIV Television…'}else{video.src=u;ready=true;if(mode!=='start')tryPlay()}};
 window.tivBack=()=>{if(mode==='info'||mode==='guide'){hideAll();return true}return false};
 
 /* ===== Sponsors (TIV_SPONSOR lines on the link page): shown for 15 s every 3 minutes ===== */
