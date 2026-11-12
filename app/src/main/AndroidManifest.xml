@@ -18,6 +18,11 @@
         android:theme="@style/Theme.TIV"
         android:usesCleartextTraffic="true">
 
+        <!-- Google AdMob app id (set in app/build.gradle) -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode"

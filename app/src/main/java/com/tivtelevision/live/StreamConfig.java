@@ -23,6 +23,11 @@ import java.util.regex.Pattern;
  *   TIV_SHARE = https://facebook.com/tivtelevisionkase
  *   TIV_PROGRAMME = 06:00 | Morning Devotion | Prayer and worship | Faith
  *   TIV_PROGRAMME = 07:00 | Tiv News at Seven | The morning news | News
+ *   TIV_SPONSOR = https://site/logo.png | Text shown for the sponsor | https://sponsor-link
+ *   TIV_ANNOUNCE = https://link-to-book-an-announcement (e.g. a Paystack payment page)
+ *   TIV_DONATE = https://link-to-support-the-station
+ *   TIV_ADVERTISE = https://link-for-businesses-who-want-to-advertise
+ *   TIV_ADS = off      (turns the Google banner off on phones; default on)
  *
  * or a JSON document: {"stream": "...", "share": "...", "schedule": [{time,title,desc,tag}]}
  *
@@ -36,6 +41,9 @@ final class StreamConfig {
     private static final Pattern STREAM = Pattern.compile("TIV_STREAM\\s*[=:]\\s*(https?://[^\\s\"'<>]+)");
     private static final Pattern SHARE = Pattern.compile("TIV_SHARE\\s*[=:]\\s*(https?://[^\\s\"'<>]+)");
     private static final Pattern PROGRAMME = Pattern.compile("TIV_PROGRAMME\\s*[=:]\\s*([^\\n]+)");
+    private static final Pattern SPONSOR = Pattern.compile("TIV_SPONSOR\\s*[=:]\\s*([^\\n]+)");
+    private static final Pattern ADS = Pattern.compile("TIV_ADS\\s*[=:]\\s*(on|off)", Pattern.CASE_INSENSITIVE);
+    private static final String[] LINK_KEYS = {"announce", "donate", "advertise"};
 
     private StreamConfig() {}
 
@@ -120,6 +128,25 @@ final class StreamConfig {
                 schedule.put(item);
             }
             if (schedule.length() > 0) o.put("schedule", schedule);
+            // Money features: sponsor banners, booking / donation / advertising links, Google ads switch.
+            JSONArray sponsors = new JSONArray();
+            Matcher sp = SPONSOR.matcher(text);
+            while (sp.find()) {
+                String[] parts = sp.group(1).split("\\|");
+                JSONObject item = new JSONObject();
+                String img = parts[0].trim();
+                if (img.startsWith("http")) item.put("image", img);
+                if (parts.length > 1) item.put("text", parts[1].trim());
+                if (parts.length > 2 && parts[2].trim().startsWith("http")) item.put("link", parts[2].trim());
+                if (item.length() > 0) sponsors.put(item);
+            }
+            if (sponsors.length() > 0) o.put("sponsors", sponsors);
+            for (String key : LINK_KEYS) {
+                Matcher lm = Pattern.compile("TIV_" + key.toUpperCase() + "\\s*[=:]\\s*(https?://[^\\s\"'<>]+)").matcher(text);
+                if (lm.find()) o.put(key, lm.group(1));
+            }
+            Matcher am = ADS.matcher(text);
+            if (am.find()) o.put("ads", am.group(1).toLowerCase());
             return o;
         } catch (Exception e) {
             return null;

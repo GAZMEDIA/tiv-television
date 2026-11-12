@@ -135,6 +135,18 @@ footer .in{max-width:1180px;margin:0 auto;padding:18px 16px 26px;color:var(--ash
 
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--cloth);color:var(--ink);font-weight:700;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:40}
 .toast.show{opacity:1}
+
+/* Sponsors and support */
+.sponsor{display:flex;align-items:center;gap:12px;margin:12px 16px 0;padding:10px 12px;border:1px solid #333;border-radius:10px;background:var(--graphite);text-decoration:none;min-height:64px}
+.sponsor[hidden]{display:none}
+.sponsor img{width:44px;height:44px;border-radius:8px;object-fit:cover;background:#fff;flex:none}
+.sponsor small{display:block;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--ash)}
+.sponsor b{display:block;font-size:15px;font-weight:700;margin-top:2px;line-height:1.25}
+.earn{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:14px}
+.earn a{display:block;padding:16px;border-radius:12px;background:var(--graphite);border:1px solid #333;text-decoration:none}
+.earn a.main{background:var(--cloth);color:var(--ink);border-color:var(--cloth)}
+.earn b{display:block;font-size:17px;font-weight:800}
+.earn span{display:block;font-size:13px;margin-top:4px;opacity:.75}
 </style>
 </head>
 <body>
@@ -173,6 +185,7 @@ footer .in{max-width:1180px;margin:0 auto;padding:18px 16px 26px;color:var(--ash
         </div>
         <div class="quality" id="quality" aria-label="Picture quality"></div>
       </div>
+      <a class="sponsor" id="sponsor" hidden><img id="sponsorImg" alt="" hidden><div><small>Sponsored by</small><b id="sponsorText"></b></div></a>
     </div>
 
     <aside class="guide" id="schedule">
@@ -191,6 +204,16 @@ footer .in{max-width:1180px;margin:0 auto;padding:18px 16px 26px;color:var(--ash
   <section class="heritage">
     <q>Preserving the cultural heritage and traditional values of the Tiv people.</q>
     <p>Authentic Tiv stories and perspectives, told by the people who live them, streaming free to Tiv homes in Benue and across the world.</p>
+  </section>
+
+  <section class="sec" id="support">
+    <h3>Support &amp; advertise</h3>
+    <p class="lead">Keep TIV Television on air, and reach Tiv homes everywhere.</p>
+    <div class="earn">
+      <a class="main" id="announceLink" href="#"><b>Book an announcement</b><span>Birthdays, weddings, burials, church and business notices</span></a>
+      <a id="donateLink" href="#"><b>Support TIV Television</b><span>Help keep the channel free for everyone</span></a>
+      <a id="advertiseLink" href="#"><b>Advertise on TIV</b><span>Put your business in front of Tiv viewers</span></a>
+    </div>
   </section>
 
   <section class="sec" id="contact">
@@ -321,6 +344,24 @@ $('shareBtn').onclick=async()=>{const data={title:'TIV Television — Live',text
 /* Called by the app when the stream link changes */
 window.tivSwitchStream=u=>{STREAM_URL=u;if(hls){hls.loadSource(u);hls.startLoad()}else if(video.src){video.src=u;video.play().catch(()=>{})}};
 window.tivBack=()=>false;
+
+/* ===== Sponsors and support links (set on the link page: TIV_SPONSOR, TIV_ANNOUNCE, TIV_DONATE, TIV_ADVERTISE) ===== */
+(()=>{
+  const WA='https://wa.me/2348076092121?text=';
+  const link=(id,url,msg)=>{const a=$(id);if(a)a.href=url||(WA+encodeURIComponent(msg))};
+  link('announceLink',APP_CFG.announce,'Hello TIV Television, I want to book an announcement.');
+  link('donateLink',APP_CFG.donate,'Hello TIV Television, I want to support the station.');
+  link('advertiseLink',APP_CFG.advertise,'Hello TIV Television, I want to advertise on the channel.');
+  const list=Array.isArray(APP_CFG.sponsors)?APP_CFG.sponsors:[];
+  if(!list.length)return;
+  let i=0;const box=$('sponsor'),img=$('sponsorImg'),txt=$('sponsorText');
+  const show=()=>{const sp=list[i%list.length];i++;
+    txt.textContent=sp.text||'';
+    if(sp.image){img.src=sp.image;img.hidden=false}else{img.hidden=true}
+    if(sp.link){box.href=sp.link}else{box.removeAttribute('href')}
+    box.hidden=false};
+  show(); if(list.length>1) setInterval(show,8000);
+})();
 </script>
 </body>
 </html>

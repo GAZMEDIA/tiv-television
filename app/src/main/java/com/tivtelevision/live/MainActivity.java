@@ -25,6 +25,12 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 
 import org.json.JSONObject;
 
@@ -47,6 +53,7 @@ public class MainActivity extends Activity {
     private final Handler main = new Handler(Looper.getMainLooper());
     private FrameLayout root;
     private WebView web;
+    private AdView adView;   // Google banner under the page (phones only)
     private boolean isTv;
     private volatile JSONObject config;
     private boolean pageLoaded;
@@ -65,11 +72,25 @@ public class MainActivity extends Activity {
 
         root = new FrameLayout(this);
         root.setBackgroundColor(Color.BLACK);
+        // Page on top, Google banner underneath (phones only; TV apps use video ads instead).
+        LinearLayout column = new LinearLayout(this);
+        column.setOrientation(LinearLayout.VERTICAL);
         web = new WebView(this);
         web.setBackgroundColor(Color.BLACK);
-        root.addView(web, new FrameLayout.LayoutParams(
+        column.addView(web, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        root.addView(column, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         setContentView(root);
+        if (!isTv) {
+            adView = new AdView(this);
+            adView.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
+            adView.setAdSize(AdSize.BANNER);
+            adView.setBackgroundColor(Color.BLACK);
+            adView.setVisibility(View.GONE);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            column.addView(adView, lp);
+        }
         if (isTv) immersive(true);
 
         WebSettings s = web.getSettings();
@@ -88,6 +109,9 @@ public class MainActivity extends Activity {
         web.setFocusableInTouchMode(true);
 
         config = StreamConfig.cached(this);
+        if (adView != null) {
+            new Thread(() -> MobileAds.initialize(this, status -> main.post(this::applyAds)), "tiv-ads").start();
+        }
         refreshConfig();
         main.postDelayed(this::loadPage, STARTUP_WAIT_MS);
     }
@@ -118,6 +142,7 @@ public class MainActivity extends Activity {
             main.post(() -> {
                 String oldStream = config.optString("stream");
                 config = fresh;
+                applyAds();
                 if (!pageLoaded) {
                     loadPage();
                 } else if (!fresh.optString("stream").equals(oldStream)) {
@@ -126,6 +151,19 @@ public class MainActivity extends Activity {
                 }
             });
         }, "tiv-config").start();
+    }
+
+    private boolean adLoaded;
+
+    /** Shows the Google banner unless the link page says TIV_ADS = off. */
+    private void applyAds() {
+        if (adView == null || isFinishing()) return;
+        boolean on = !"off".equalsIgnoreCase(config.optString("ads", "on"));
+        adView.setVisibility(on ? View.VISIBLE : View.GONE);
+        if (on && !adLoaded) {
+            adLoaded = true;
+            adView.loadAd(new AdRequest.Builder().build());
+        }
     }
 
     private final Runnable periodic = new Runnable() {
@@ -145,6 +183,7 @@ public class MainActivity extends Activity {
         super.onResume();
         resumed = true;
         web.onResume();
+        if (adView != null) adView.resume();
         if (isTv || customView != null) immersive(true);
         if (pageLoaded) refreshConfig();
     }
@@ -152,6 +191,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         resumed = false;
+        if (adView != null) adView.pause();
         web.onPause();
         super.onPause();
     }
@@ -159,8 +199,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         main.removeCallbacksAndMessages(null);
+        if (adView != null) adView.destroy();
         if (web != null) {
-            root.removeView(web);
+            ((ViewGroup) web.getParent()).removeView(web);
             web.destroy();
         }
         super.onDestroy();

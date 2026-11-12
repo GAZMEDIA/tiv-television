@@ -46,3 +46,19 @@ Edit `index.html` / `tv.html` in `app/src/main/assets/web/`. They are the same p
 
 ## Still to replace
 - App icon and TV banner (`app/src/main/res/mipmap-*/ic_launcher.png`, `drawable-xhdpi/banner.png`) are made from the small logo in the web pages; swap in a high-resolution logo when TIV sends it.
+
+## Money features (sponsors, bookings, Google ads)
+
+Add any of these lines to the link page (same page as `TIV_STREAM`). The app picks them up within 2 minutes, no new APK needed:
+
+```
+TIV_SPONSOR = https://example.com/logo.png | Ortom Motors - Makurdi | https://wa.me/234...
+TIV_ANNOUNCE = https://paystack.com/pay/tiv-announcement
+TIV_DONATE = https://paystack.com/pay/support-tiv
+TIV_ADVERTISE = https://wa.me/2348076092121
+TIV_ADS = off
+```
+
+- `TIV_SPONSOR` (one line per sponsor; image | text | link): phones show a rotating "Sponsored by" strip under the player; TVs show a corner card for 15 seconds every 3 minutes.
+- `TIV_ANNOUNCE`, `TIV_DONATE`, `TIV_ADVERTISE`: the three buttons in the "Support & advertise" section. Without them, the buttons open WhatsApp to the station with a ready message.
+- Google AdMob banner under the page on phones (not on TV). It uses Google's **test** ids until `ADMOB_APP_ID` and `ADMOB_BANNER_ID` in `app/build.gradle` are replaced with TIV's real ids. `TIV_ADS = off` hides it.
