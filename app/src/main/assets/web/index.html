@@ -291,7 +291,7 @@ function start(){
   if(STREAM_URL==='off'){video.controls=false;status(OFF_AIR);return}
   video.controls=true; status('Connecting to the channel…');
   if(window.Hls&&Hls.isSupported()){
-    hls=new Hls({liveSyncDurationCount:3,maxBufferLength:20});
+    hls=new Hls({liveSyncDurationCount:5,maxBufferLength:30,manifestLoadingMaxRetry:6,fragLoadingMaxRetry:6});
     hls.loadSource(STREAM_URL); hls.attachMedia(video);
     hls.on(Hls.Events.MANIFEST_PARSED,(_,d)=>{buildQuality(d.levels);video.play().catch(()=>{})});
     hls.on(Hls.Events.ERROR,(_,d)=>{ if(!d.fatal) return;

@@ -166,7 +166,7 @@ const OFF_AIR='TIV Television is off air right now. Please check back soon.';
 function load(){
   if(STREAM_URL==='off'){ready=false;return}
   if(window.Hls&&Hls.isSupported()){
-    hls=new Hls({liveSyncDurationCount:3,maxBufferLength:20});
+    hls=new Hls({liveSyncDurationCount:5,maxBufferLength:30,manifestLoadingMaxRetry:6,fragLoadingMaxRetry:6});
     hls.loadSource(STREAM_URL); hls.attachMedia(video);
     hls.on(Hls.Events.MANIFEST_PARSED,(_,d)=>{levels=d.levels||[];ready=true;if(mode!=='start')tryPlay()});
     hls.on(Hls.Events.ERROR,(_,d)=>{if(!d.fatal)return;
