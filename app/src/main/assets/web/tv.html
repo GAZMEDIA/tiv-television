@@ -176,6 +176,12 @@ function load(){
   } else { video.src=STREAM_URL; ready=true; }
 }
 let ready=false;
+/* Watchdog: if the picture stops moving for 6s (e.g. the server switches between OBS and the video loop), reconnect */
+let wdT=0,wdLast=-1;
+setInterval(()=>{ if(!hls||STREAM_URL==='off'||video.paused) {wdT=Date.now();return}
+  if(video.currentTime!==wdLast){wdLast=video.currentTime;wdT=Date.now();return}
+  if(Date.now()-wdT>6000){wdT=Date.now();hls.destroy();hls=null;ready=false;load()}},2000);
+
 function tryPlay(){
   video.muted=false;
   video.play().then(updateSound).catch(()=>{video.muted=true;video.play().catch(()=>{});updateSound()});

@@ -311,6 +311,12 @@ function start(){
   else status('This browser can’t play the channel. Try Chrome or Safari.');
 }
 $('cover').onclick=start;
+/* Watchdog: if the picture stops moving for 6s (e.g. the server switches between OBS and the video loop), reconnect */
+let wdT=0,wdLast=-1;
+setInterval(()=>{ if(!hls||STREAM_URL==='off'||video.paused) {wdT=Date.now();return}
+  if(video.currentTime!==wdLast){wdLast=video.currentTime;wdT=Date.now();return}
+  if(Date.now()-wdT>6000){wdT=Date.now();status('Reconnecting…');hls.destroy();hls=null;start()}},2000);
+
 video.addEventListener('playing',()=>status(''));
 video.addEventListener('waiting',()=>status('Loading…'));
 
